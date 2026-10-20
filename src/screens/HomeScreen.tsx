@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
+import {TVFocusGuideView} from '@amazon-devices/react-native-kepler';
 import {palette, radius, spacing, typography} from '../theme/tokens';
 import {Header, FocusRow, Screen, SectionTitle, StatusPill} from '../components/Shell';
 import {Chip, Button, Focusable} from '../components/Focusable';
@@ -146,7 +147,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         {/* ---- Right: featured catalogue ---- */}
         <View style={styles.right}>
           <SectionTitle>FEATURED IN THE CATALOGUE</SectionTitle>
-          <View style={styles.posterGrid}>
+          <TVFocusGuideView style={styles.posterGrid} autoFocus>
             {featured.map((title, index) => (
               <Focusable
                 key={title.id}
@@ -158,16 +159,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 testID={`featured-${title.id}`}
                 variant="ghost"
                 style={styles.posterTile}>
-                <Poster title={title} width={252} height={142} />
+                <Poster title={title} width={256} height={144} showOverlayText={false} />
                 <Text numberOfLines={1} style={styles.posterLabel}>
                   {title.title}
                 </Text>
                 <Text numberOfLines={1} style={styles.posterMeta}>
-                  {title.runtimeMin} min · {title.contentRating}
+                  {title.year} · {title.runtimeMin} min · {title.contentRating}
                 </Text>
               </Focusable>
             ))}
-          </View>
+          </TVFocusGuideView>
           <Text style={styles.catalogueNote}>
             {CATALOGUE.length} titles · offline sample catalogue · no streaming service connected
           </Text>
@@ -198,7 +199,7 @@ const styles = StyleSheet.create({
   posterTile: {
     margin: spacing.sm,
     padding: spacing.sm,
-    width: 284,
+    width: 280,
     borderRadius: radius.lg,
     backgroundColor: palette.surface,
     borderColor: palette.border,

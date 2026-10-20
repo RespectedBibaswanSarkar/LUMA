@@ -344,8 +344,9 @@ and carries no artwork-licensing exposure.
 
 SDK 0.24.12112 exposes **no microphone or speech-recognition API** to React Native. LUMA
 does not simulate listening. The voice panel states this in-app and offers the working
-inputs (suggested phrases + on-screen keyboard). `src/engine/voiceProvider.ts` documents
-the integration point for a real recognizer.
+inputs (suggested phrases + on-screen keyboard). No voice-provider module exists yet; a real
+recognizer requires a supported platform API. `src/engine/aiProvider.ts` is the pattern used
+for the separate text-understanding provider abstraction.
 </details>
 
 <details>

@@ -1,5 +1,5 @@
 import React from 'react';
-import {ScrollView, StyleProp, StyleSheet, Text, View, ViewStyle} from 'react-native';
+import {ActivityIndicator, ScrollView, StyleProp, StyleSheet, Text, View, ViewStyle} from 'react-native';
 import {TVFocusGuideView} from '@amazon-devices/react-native-kepler';
 import {palette, radius, spacing, typography} from '../theme/tokens';
 import {Focusable} from './Focusable';
@@ -12,20 +12,20 @@ export const SoftGradient: React.FC<{
   style?: StyleProp<ViewStyle>;
   bands?: number;
 }> = ({from, to, style, bands = 6}) => (
-  <View pointerEvents="none" style={[StyleSheet.absoluteFill, {overflow: 'hidden'}, style]}>
+  <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.gradientWrap, style]}>
     <View style={[StyleSheet.absoluteFill, {backgroundColor: from}]} />
     {Array.from({length: bands}).map((_, i) => (
       <View
         key={i}
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          top: `${(i * 100) / bands}%`,
-          height: `${100 / bands + 1}%`,
-          backgroundColor: to,
-          opacity: ((i + 1) / bands) * 0.85,
-        }}
+        style={[
+          styles.gradientBand,
+          {
+            top: `${(i * 100) / bands}%`,
+            height: `${100 / bands + 1}%`,
+            backgroundColor: to,
+            opacity: ((i + 1) / bands) * 0.85,
+          },
+        ]}
       />
     ))}
   </View>
@@ -168,8 +168,14 @@ export const StatusPill: React.FC<{status: 'idle' | 'processing' | 'error'; prov
         ? {bg: palette.interactive, fg: palette.background, text: 'Thinking…'}
         : {bg: palette.surface, fg: palette.textSecondary, text: provider};
   return (
-    <View style={[styles.statusPill, {backgroundColor: tone.bg}]}>
-      <View style={[styles.statusDot, {backgroundColor: status === 'idle' ? palette.success : tone.fg}]} />
+    <View style={[styles.statusPill, {backgroundColor: tone.bg}]} testID="status-pill">
+      {status === 'processing' ? (
+        <ActivityIndicator size="small" color={tone.fg} style={styles.statusSpinner} />
+      ) : status === 'error' ? (
+        <Text style={[styles.statusAlert, {color: tone.fg}]}>⚠</Text>
+      ) : (
+        <View style={styles.statusDot} />
+      )}
       <Text numberOfLines={1} style={[styles.statusText, {color: tone.fg}]}>
         {tone.text}
       </Text>
@@ -202,10 +208,17 @@ export const Scroll: React.FC<{children: React.ReactNode; style?: StyleProp<View
   </ScrollView>
 );
 
-export const EmptyState: React.FC<{title: string; body: string}> = ({title, body}) => (
+export const EmptyState: React.FC<{
+  title: string;
+  body: string;
+  icon?: string;
+  action?: React.ReactNode;
+}> = ({title, body, icon, action}) => (
   <View style={styles.empty}>
+    {icon ? <Text style={styles.emptyIcon}>{icon}</Text> : null}
     <Text style={styles.emptyTitle}>{title}</Text>
     <Text style={styles.emptyBody}>{body}</Text>
+    {action ? <View style={styles.emptyAction}>{action}</View> : null}
   </View>
 );
 
@@ -293,11 +306,30 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     alignSelf: 'flex-start',
   },
-  statusDot: {width: 12, height: 12, borderRadius: 6, marginRight: spacing.sm},
+  statusDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: palette.success,
+    marginRight: spacing.sm,
+  },
+  statusSpinner: {
+    marginRight: spacing.sm,
+    transform: [{scale: 0.85}],
+  },
+  statusAlert: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginRight: spacing.xs,
+  },
   statusText: {...typography.caption, fontWeight: '600'},
   focusRow: {flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap'},
   scrollContent: {paddingBottom: spacing.xl},
+  gradientWrap: {overflow: 'hidden'},
+  gradientBand: {position: 'absolute', left: 0, right: 0},
   empty: {padding: spacing.xl, alignItems: 'center'},
+  emptyIcon: {fontSize: 54, color: palette.interactive, marginBottom: spacing.md},
   emptyTitle: {...typography.heading, color: palette.textPrimary, marginBottom: spacing.sm},
   emptyBody: {...typography.body, color: palette.textSecondary, textAlign: 'center', maxWidth: 900},
+  emptyAction: {marginTop: spacing.lg},
 });

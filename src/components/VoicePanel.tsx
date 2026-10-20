@@ -10,8 +10,8 @@ import {SoftGradient} from './Shell';
  * The installed Vega SDK (0.24.12112) exposes no microphone or speech
  * recognition API to React Native, so LUMA does NOT pretend to listen.
  * Activating this control states exactly that, and offers the working input
- * modes instead. `src/engine/voiceProvider.ts` documents the integration
- * point where a supported recognizer would plug in.
+ * modes instead. `src/engine/aiProvider.ts` documents the provider pattern;
+ * a real recognizer would require a supported platform API.
  */
 export const VoicePanel: React.FC<{
   onUseKeyboard: () => void;
@@ -32,7 +32,7 @@ export const VoicePanel: React.FC<{
             This Vega build (SDK 0.24.12112) exposes no microphone or speech-recognition API to
             React Native, so LUMA will not simulate listening. Everything else works with the
             remote today: pick a suggested request, or type with the on-screen keyboard. A real
-            recognizer can be plugged in at <Text style={styles.code}>src/engine/voiceProvider.ts</Text>.
+            recognizer requires a supported platform API.
           </Text>
           <View style={styles.disclosureActions}>
             <Focusable

@@ -24,7 +24,7 @@ export const palette = {
   /** Secondary text */
   textSecondary: '#B8C4D8',
   /** Tertiary / disabled text */
-  textDisabled: '#5C6980',
+  textDisabled: '#8794AA',
   /** Accessible error red on #080B14 (contrast ratio ~7.1:1) */
   error: '#FF8A8A',
   /** Success / satisfied */
