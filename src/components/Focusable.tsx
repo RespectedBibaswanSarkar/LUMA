@@ -102,10 +102,10 @@ export const Focusable: React.FC<FocusableProps> = ({
     variant === 'pill' && styles.pill,
     variant === 'block' && styles.block,
     variant === 'ghost' && styles.ghost,
+    style,
     disabled && styles.disabled,
     focused && styles.focused,
     focused && variant === 'ghost' && styles.ghostFocused,
-    style,
     focused && focusedStyle,
   ];
 
@@ -159,14 +159,20 @@ export const Chip: React.FC<ChipProps> = ({
     testID={testID}
     accessibilityLabel={label}
     contentStyle={styles.chipContent}
-    focusedStyle={tone === 'warm' ? styles.chipWarmFocused : undefined}>
+    focusedStyle={
+      tone === 'warm'
+        ? styles.chipWarmFocused
+        : tone === 'accent'
+        ? styles.chipAccentFocused
+        : styles.chipDefaultFocused
+    }>
     <Text
       numberOfLines={1}
       style={[
         styles.chipText,
-        tone === 'accent' && {color: palette.interactive},
-        tone === 'warm' && {color: palette.highlight},
-        disabled && {color: palette.textDisabled},
+        tone === 'accent' && styles.chipAccentText,
+        tone === 'warm' && styles.chipWarmText,
+        disabled && styles.disabledText,
       ]}>
       {prefix ? `${prefix} ` : ''}
       {label}
@@ -206,14 +212,21 @@ export const Button: React.FC<ButtonProps> = ({
     accessibilityLabel={label}
     variant={tone === 'secondary' ? 'ghost' : 'block'}
     style={[tone === 'primary' && styles.primary, tone === 'danger' && styles.danger, style]}
+    focusedStyle={
+      tone === 'primary'
+        ? styles.primaryFocused
+        : tone === 'danger'
+        ? styles.dangerFocused
+        : undefined
+    }
     contentStyle={styles.buttonContent}>
     <Text
       numberOfLines={1}
       style={[
         styles.buttonLabel,
-        tone === 'primary' && {color: palette.background},
-        tone === 'danger' && {color: palette.error},
-        disabled && {color: palette.textDisabled},
+        tone === 'primary' && styles.primaryText,
+        tone === 'danger' && styles.dangerText,
+        disabled && styles.disabledText,
         textStyle,
       ]}>
       {label}
@@ -256,13 +269,14 @@ const styles = StyleSheet.create({
   },
   focused: {
     borderColor: palette.focusRing,
+    borderWidth: 2.5,
     transform: [{scale: 1.04}],
     backgroundColor: palette.surfaceFocused,
     shadowColor: palette.interactive,
-    shadowOpacity: 0.55,
-    shadowRadius: 18,
+    shadowOpacity: 0.75,
+    shadowRadius: 20,
     shadowOffset: {width: 0, height: 0},
-    elevation: 8,
+    elevation: 10,
   },
   content: {
     alignItems: 'center',
@@ -274,12 +288,41 @@ const styles = StyleSheet.create({
   },
   chipWarmFocused: {
     borderColor: palette.highlight,
+    borderWidth: 2.5,
     backgroundColor: palette.surfaceFocused,
+    shadowColor: palette.highlight,
+    shadowOpacity: 0.75,
+    shadowRadius: 18,
+    elevation: 8,
+  },
+  chipAccentFocused: {
+    borderColor: palette.interactive,
+    borderWidth: 2.5,
+    backgroundColor: palette.surfaceFocused,
+    shadowColor: palette.interactive,
+    shadowOpacity: 0.75,
+    shadowRadius: 18,
+    elevation: 8,
+  },
+  chipDefaultFocused: {
+    borderColor: palette.focusRing,
+    borderWidth: 2.5,
+    backgroundColor: palette.surfaceFocused,
+    shadowColor: palette.interactive,
+    shadowOpacity: 0.7,
+    shadowRadius: 18,
+    elevation: 8,
   },
   chipText: {
     ...typography.label,
     color: palette.textSecondary,
     includeFontPadding: false,
+  },
+  chipAccentText: {
+    color: palette.interactive,
+  },
+  chipWarmText: {
+    color: palette.highlight,
   },
   buttonContent: {
     flexDirection: 'row',
@@ -292,8 +335,36 @@ const styles = StyleSheet.create({
   primary: {
     backgroundColor: palette.interactive,
   },
+  primaryFocused: {
+    backgroundColor: '#A5F3FC',
+    borderColor: '#FFFFFF',
+    borderWidth: 2.5,
+    shadowColor: palette.interactive,
+    shadowOpacity: 0.85,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  primaryText: {
+    color: palette.background,
+    fontWeight: '800',
+  },
   danger: {
     backgroundColor: 'transparent',
     borderColor: palette.error,
+  },
+  dangerFocused: {
+    borderColor: palette.error,
+    borderWidth: 2.5,
+    backgroundColor: 'rgba(255, 138, 138, 0.22)',
+    shadowColor: palette.error,
+    shadowOpacity: 0.75,
+    shadowRadius: 18,
+    elevation: 10,
+  },
+  dangerText: {
+    color: palette.error,
+  },
+  disabledText: {
+    color: palette.textDisabled,
   },
 });

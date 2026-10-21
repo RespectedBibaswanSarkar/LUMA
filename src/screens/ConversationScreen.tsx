@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {ActivityIndicator, StyleSheet, Text, View} from 'react-native';
 import {palette, radius, spacing, typography} from '../theme/tokens';
 import {Header, IntentBar, FocusRow, Screen, SectionTitle, StatusPill} from '../components/Shell';
 import {Button, Chip} from '../components/Focusable';
@@ -47,7 +47,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   useEffect(() => {
     if (preset && !presetConsumed.current) {
       presetConsumed.current = true;
-      void send(preset);
+      send(preset).catch(() => {});
     }
   }, [preset, send]);
 
@@ -66,12 +66,12 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     setDraft('');
     setKeyboardOpen(false);
     moveFocus('followup-0');
-    void send(text);
+    send(text).catch(() => {});
   };
 
   const ask = (utterance: string) => {
     moveFocus('followup-0');
-    void send(utterance);
+    send(utterance).catch(() => {});
   };
 
   const hasIntent = describeIntent(session.intent).length > 0;
@@ -102,14 +102,25 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
           <MessageList messages={session.messages} />
           {status === 'processing' ? (
             <View style={styles.thinking} testID="thinking-indicator">
-              <View style={styles.thinkingDot} />
+              <ActivityIndicator
+                size="small"
+                color={palette.interactive}
+                style={styles.thinkingSpinner}
+              />
               <Text style={styles.thinkingText}>LUMA is reading your request…</Text>
             </View>
           ) : null}
           {status === 'error' ? (
-            <Text style={styles.errorText} testID="error-indicator">
-              Something went wrong. Your session is intact — try again.
-            </Text>
+            <View style={styles.errorBox} testID="error-indicator">
+              <Text style={styles.errorIcon}>⚠</Text>
+              <View style={styles.errorTextWrap}>
+                <Text style={styles.errorTitle}>Could not process request</Text>
+                <Text style={styles.errorText}>
+                  Something went wrong reading that. Your session is intact — try picking a
+                  suggested follow-up or rephrasing your request.
+                </Text>
+              </View>
+            </View>
           ) : null}
         </View>
 
@@ -206,16 +217,46 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.lg,
   },
   railRow: {marginBottom: spacing.sm},
-  thinking: {flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm},
-  thinkingDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: palette.interactive,
+  thinking: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    backgroundColor: 'rgba(103, 232, 249, 0.08)',
+    borderRadius: radius.md,
+    borderColor: 'rgba(103, 232, 249, 0.25)',
+    borderWidth: 1,
+    marginTop: spacing.sm,
+  },
+  thinkingSpinner: {
     marginRight: spacing.sm,
   },
   thinkingText: {...typography.body, color: palette.interactive},
-  errorText: {...typography.body, color: palette.error, paddingVertical: spacing.sm},
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(255, 138, 138, 0.12)',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: palette.error,
+    padding: spacing.md,
+    marginTop: spacing.sm,
+  },
+  errorIcon: {
+    fontSize: 24,
+    color: palette.error,
+    marginRight: spacing.sm,
+    marginTop: 2,
+  },
+  errorTextWrap: {
+    flex: 1,
+  },
+  errorTitle: {
+    ...typography.label,
+    color: palette.error,
+    marginBottom: 4,
+  },
+  errorText: {...typography.body, fontSize: 24, lineHeight: 32, color: palette.textPrimary},
   metaPanel: {
     marginTop: spacing.lg,
     backgroundColor: palette.surface,

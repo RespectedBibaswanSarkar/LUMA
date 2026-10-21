@@ -69,7 +69,7 @@ export const AppProvider: React.FC<{children: React.ReactNode}> = ({children}) =
 
   useEffect(() => {
     if (restored) {
-      void saveSession(session);
+      saveSession(session).catch(() => {});
     }
   }, [session, restored]);
 

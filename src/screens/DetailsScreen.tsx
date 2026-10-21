@@ -1,7 +1,7 @@
 import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {ScrollView, StyleSheet, Text, View} from 'react-native';
 import {palette, radius, spacing, typography} from '../theme/tokens';
-import {FocusRow, Header, Panel, Screen} from '../components/Shell';
+import {EmptyState, FocusRow, Header, Panel, Screen} from '../components/Shell';
 import {Button, Chip} from '../components/Focusable';
 import {Poster} from '../components/Poster';
 import {useApp} from '../state/AppProvider';
@@ -33,8 +33,23 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({
   if (!title) {
     return (
       <Screen>
-        <Header title="Details" onBack={onBack} />
-        <Text style={styles.missing}>That title is no longer in the catalogue.</Text>
+        <Header title="Details" subtitle="Title not found" onBack={onBack} backFirstFocus={true} />
+        <View style={styles.missingContainer}>
+          <EmptyState
+            icon="🎬"
+            title="Title no longer in catalogue"
+            body="This title is no longer available in the catalogue. It may have been removed or an invalid link was used."
+          />
+          <FocusRow style={styles.missingActions}>
+            <Button
+              label="‹ Back to recommendations"
+              tone="primary"
+              hasTVPreferredFocus={true}
+              onPress={onBack}
+              testID="details-missing-back"
+            />
+          </FocusRow>
+        </View>
       </Screen>
     );
   }
@@ -60,7 +75,7 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({
 
       <View style={styles.body}>
         <View style={styles.left}>
-          <Poster title={title} width={620} height={360} hero />
+          <Poster title={title} width={620} height={348} hero showOverlayText={false} />
           <View style={styles.factGrid}>
             <Fact label="Runtime" value={`${title.runtimeMin} min`} />
             <Fact label="Year" value={`${title.year}`} />
@@ -74,75 +89,80 @@ export const DetailsScreen: React.FC<DetailsScreenProps> = ({
         </View>
 
         <View style={styles.right}>
-          <Text style={styles.titleText}>{title.title}</Text>
-          <Text style={styles.description}>{title.description}</Text>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.rightScrollContent}
+            keyboardShouldPersistTaps="handled">
+            <Text style={styles.titleText}>{title.title}</Text>
+            <Text style={styles.description}>{title.description}</Text>
 
-          <Panel title="WHY LUMA SHOWED YOU THIS" accent>
-            {match ? (
-              <>
-                {match.reasons.map(reason => (
-                  <Text key={reason} style={styles.reason}>
-                    → {reason}
+            <Panel title="WHY LUMA SHOWED YOU THIS" accent>
+              {match ? (
+                <>
+                  {match.reasons.map(reason => (
+                    <Text key={reason} style={styles.reason}>
+                      → {reason}
+                    </Text>
+                  ))}
+                  <Text style={styles.subLabel}>CONSTRAINTS IT SATISFIES</Text>
+                  <Text style={styles.good}>
+                    {match.satisfied.length ? match.satisfied.join(' · ') : 'No specific constraint matched'}
                   </Text>
-                ))}
-                <Text style={styles.subLabel}>CONSTRAINTS IT SATISFIES</Text>
-                <Text style={styles.good}>
-                  {match.satisfied.length ? match.satisfied.join(' · ') : 'No specific constraint matched'}
+                  {match.unverified.length ? (
+                    <>
+                      <Text style={styles.subLabel}>COULD NOT BE VERIFIED</Text>
+                      <Text style={styles.warn}>{match.unverified.join(' · ')}</Text>
+                    </>
+                  ) : null}
+                  {match.failed.length ? (
+                    <>
+                      <Text style={styles.subLabel}>TRADE-OFFS</Text>
+                      <Text style={styles.warn}>{match.failed.join(' · ')}</Text>
+                    </>
+                  ) : null}
+                </>
+              ) : (
+                <Text style={styles.reason}>
+                  Opened from the catalogue rather than a recommendation — ask LUMA a request to see
+                  an explanation for this title.
                 </Text>
-                {match.unverified.length ? (
-                  <>
-                    <Text style={styles.subLabel}>COULD NOT BE VERIFIED</Text>
-                    <Text style={styles.warn}>{match.unverified.join(' · ')}</Text>
-                  </>
-                ) : null}
-                {match.failed.length ? (
-                  <>
-                    <Text style={styles.subLabel}>TRADE-OFFS</Text>
-                    <Text style={styles.warn}>{match.failed.join(' · ')}</Text>
-                  </>
-                ) : null}
-              </>
-            ) : (
-              <Text style={styles.reason}>
-                Opened from the catalogue rather than a recommendation — ask LUMA a request to see
-                an explanation for this title.
-              </Text>
-            )}
-          </Panel>
+              )}
+            </Panel>
 
-          <FocusRow style={styles.actions}>
-            <Button
-              label="‹ Back to results"
-              onFocus={() => onFocusChanged('details-back')}
-              hasTVPreferredFocus={wants('details-back')}
-              onPress={onBack}
-              testID="details-back"
-            />
-            <Button
-              label="Refine around this"
-              tone="primary"
-              onFocus={() => onFocusChanged('details-refine')}
-              hasTVPreferredFocus={wants('details-refine')}
-              onPress={() =>
-                onAsk(
-                  `Keep ${title.genres[0] ?? 'this'} but nothing too intense, under ${Math.max(90, title.runtimeMin)} minutes`,
-                )
-              }
-              testID="details-refine"
-            />
-            <Chip
-              label="Balance it for my group"
-              onFocus={() => onFocusChanged('details-group')}
-              hasTVPreferredFocus={wants('details-group')}
-              onPress={onOpenGroup}
-              testID="details-group"
-            />
-          </FocusRow>
+            <FocusRow style={styles.actions}>
+              <Button
+                label="‹ Back to results"
+                onFocus={() => onFocusChanged('details-back')}
+                hasTVPreferredFocus={wants('details-back')}
+                onPress={onBack}
+                testID="details-back"
+              />
+              <Button
+                label="Refine around this"
+                tone="primary"
+                onFocus={() => onFocusChanged('details-refine')}
+                hasTVPreferredFocus={wants('details-refine')}
+                onPress={() =>
+                  onAsk(
+                    `Keep ${title.genres[0] ?? 'this'} but nothing too intense, under ${Math.max(90, title.runtimeMin)} minutes`,
+                  )
+                }
+                testID="details-refine"
+              />
+              <Chip
+                label="Balance it for my group"
+                onFocus={() => onFocusChanged('details-group')}
+                hasTVPreferredFocus={wants('details-group')}
+                onPress={onOpenGroup}
+                testID="details-group"
+              />
+            </FocusRow>
 
-          <Text style={styles.honesty}>
-            Playback is not connected: LUMA is a discovery and recommendation companion, and does
-            not stream or launch titles. Availability shown is catalogue metadata only.
-          </Text>
+            <Text style={styles.honesty}>
+              Playback is not connected: LUMA is a discovery and recommendation companion, and does
+              not stream or launch titles. Availability shown is catalogue metadata only.
+            </Text>
+          </ScrollView>
         </View>
       </View>
     </Screen>
@@ -202,8 +222,19 @@ const styles = StyleSheet.create({
     maxWidth: 900,
     borderLeftWidth: 3,
     borderLeftColor: palette.border,
-    paddingLeft: spacing.sm,
     marginTop: spacing.sm,
     borderRadius: radius.sm,
+  },
+  missingContainer: {
+    paddingVertical: spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  missingActions: {
+    marginTop: spacing.lg,
+    justifyContent: 'center',
+  },
+  rightScrollContent: {
+    paddingBottom: spacing.xl,
   },
 });

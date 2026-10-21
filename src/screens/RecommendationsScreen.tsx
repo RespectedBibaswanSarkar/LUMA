@@ -1,7 +1,7 @@
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {palette, spacing, typography} from '../theme/tokens';
-import {EmptyState, FocusRow, Header, IntentBar, Screen, SectionTitle} from '../components/Shell';
+import {EmptyState, FocusRow, Header, IntentBar, Screen, Scroll, SectionTitle} from '../components/Shell';
 import {Button, Chip} from '../components/Focusable';
 import {TitleCard} from '../components/Poster';
 import {useApp} from '../state/AppProvider';
@@ -49,12 +49,40 @@ export const RecommendationsScreen: React.FC<RecommendationsScreenProps> = ({
       <IntentBar labels={labels} changes={session.lastChanges} />
 
       {matches.length === 0 ? (
-        <EmptyState
-          title="No results yet"
-          body="LUMA shows up to three titles that verifiably satisfy your request. Ask something like “an adventurous family film under two hours” and every match will explain itself."
-        />
+        <View style={styles.emptyWrap}>
+          <EmptyState
+            icon="🎬"
+            title={labels.length ? 'No titles match all active constraints' : 'No recommendations yet'}
+            body={
+              labels.length
+                ? 'Every constraint is strictly enforced so recommendations stay honest. Try asking for a broader runtime, different genre, or relaxing family-friendly requirements.'
+                : 'LUMA shows up to three titles that verifiably satisfy your request. Ask something like “an adventurous family film under two hours” and every match will explain itself.'
+            }
+          />
+          <FocusRow style={styles.emptyActions}>
+            <Button
+              label="‹ Back to conversation"
+              tone="primary"
+              onFocus={() => onFocusChanged('results-empty-back')}
+              hasTVPreferredFocus={wants('results-empty-back') || wants('result-0')}
+              onPress={onBack}
+              testID="results-empty-back"
+            />
+            {REFINE_SUGGESTIONS.slice(0, 3).map((suggestion, index) => (
+              <Chip
+                key={suggestion}
+                label={suggestion}
+                prefix="›"
+                onFocus={() => onFocusChanged(`empty-refine-${index}`)}
+                hasTVPreferredFocus={wants(`empty-refine-${index}`)}
+                onPress={() => onAsk(suggestion)}
+                testID={`empty-refine-${index}`}
+              />
+            ))}
+          </FocusRow>
+        </View>
       ) : (
-        <>
+        <Scroll style={styles.resultsScroll}>
           <SectionTitle>
             TOP {matches.length} FOR YOUR REQUEST · MAX SCORE 100
           </SectionTitle>
@@ -74,13 +102,13 @@ export const RecommendationsScreen: React.FC<RecommendationsScreenProps> = ({
                 testID={`result-${index}`}
                 footer={
                   <View style={styles.footerNote}>
-                    <Text style={styles.footerLabelText}>SATISFIES</Text>
+                    <Text style={styles.footerLabelText}>WHY IT FITS</Text>
                     <Text numberOfLines={3} style={styles.footerText}>
-                      {match.satisfied.length ? match.satisfied.join(' · ') : '—'}
+                      {match.satisfied.length ? match.satisfied.join(' · ') : 'No specific constraint verified'}
                     </Text>
                     {match.failed.length ? (
                       <Text numberOfLines={2} style={styles.footerFails}>
-                        Trade-offs: {match.failed.join(' · ')}
+                        Does not match: {match.failed.join(' · ')}
                       </Text>
                     ) : null}
                   </View>
@@ -123,7 +151,7 @@ export const RecommendationsScreen: React.FC<RecommendationsScreenProps> = ({
               ))}
             </View>
           ) : null}
-        </>
+        </Scroll>
       )}
     </Screen>
   );
@@ -142,8 +170,8 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     fontSize: 18,
   },
-  footerText: {...typography.caption, fontSize: 20, color: palette.success, marginTop: 2},
-  footerFails: {...typography.caption, fontSize: 19, color: palette.highlight, marginTop: 2},
+  footerText: {...typography.caption, fontSize: 21, lineHeight: 30, color: palette.success, marginTop: 2},
+  footerFails: {...typography.caption, fontSize: 20, lineHeight: 28, color: palette.highlight, marginTop: 4},
   exclusionPanel: {
     marginTop: spacing.lg,
     borderLeftWidth: 3,
@@ -157,4 +185,16 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   exclusionLine: {...typography.caption, fontSize: 19, color: palette.textDisabled},
+  emptyWrap: {
+    paddingVertical: spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyActions: {
+    marginTop: spacing.md,
+    justifyContent: 'center',
+  },
+  resultsScroll: {
+    flex: 1,
+  },
 });
